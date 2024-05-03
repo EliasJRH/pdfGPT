@@ -102,8 +102,11 @@ def load_recommender(path, start_page=1):
     if recommender is None:
         recommender = SemanticSearch()
 
+    print("CONVERTING PDF TO TEXT")
     texts = pdf_to_text(path, start_page=start_page)
+    print("CONVERTING TEXT TO CHUNKS")
     chunks = text_to_chunks(texts, start_page=start_page)
+    print("FITTING CHUNKS")
     recommender.fit(chunks)
     return 'Corpus Loaded.'
 
@@ -173,7 +176,9 @@ async def ask_file(file: UploadFile, question: str) -> str:
     with NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         shutil.copyfileobj(file.file, tmp)
         tmp_path = Path(tmp.name)
+    print("LOADING RECOMMENDER")
 
     load_recommender(str(tmp_path))
     openAI_key = load_openai_key()
+    print("GENERATING ANSWER")
     return generate_answer(question, openAI_key)
