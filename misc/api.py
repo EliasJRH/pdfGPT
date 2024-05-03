@@ -22,8 +22,8 @@ def download_pdf(url, output_path):
 
 
 def preprocess(text):
-    text = text.replace('\n', ' ')
-    text = re.sub('\s+', ' ', text)
+    text = text.replace("\n", " ")
+    text = re.sub("\s+", " ", text)
     return text
 
 
@@ -46,7 +46,7 @@ def pdf_to_text(path, start_page=1, end_page=None):
 
 
 def text_to_chunks(texts, word_length=150, start_page=1):
-    text_toks = [t.split(' ') for t in texts]
+    text_toks = [t.split(" ") for t in texts]
     chunks = []
 
     for idx, words in enumerate(text_toks):
@@ -59,15 +59,15 @@ def text_to_chunks(texts, word_length=150, start_page=1):
             ):
                 text_toks[idx + 1] = chunk + text_toks[idx + 1]
                 continue
-            chunk = ' '.join(chunk).strip()
-            chunk = f'[Page no. {idx+start_page}]' + ' ' + '"' + chunk + '"'
+            chunk = " ".join(chunk).strip()
+            chunk = f"[Page no. {idx+start_page}]" + " " + '"' + chunk + '"'
             chunks.append(chunk)
     return chunks
 
 
 class SemanticSearch:
     def __init__(self):
-        self.use = hub.load('https://tfhub.dev/google/universal-sentence-encoder/4')
+        self.use = hub.load("https://tfhub.dev/google/universal-sentence-encoder/4")
         self.fitted = False
 
     def fit(self, data, batch=1000, n_neighbors=5):
@@ -108,13 +108,13 @@ def load_recommender(path, start_page=1):
     chunks = text_to_chunks(texts, start_page=start_page)
     print("FITTING CHUNKS")
     recommender.fit(chunks)
-    return 'Corpus Loaded.'
+    return "Corpus Loaded."
 
 
 def generate_text(openAI_key, prompt, engine="text-davinci-003"):
     # openai.api_key = openAI_key
     try:
-        messages=[{ "content": prompt,"role": "user"}]
+        messages = [{"content": prompt, "role": "user"}]
         completions = completion(
             model=engine,
             messages=messages,
@@ -122,20 +122,20 @@ def generate_text(openAI_key, prompt, engine="text-davinci-003"):
             n=1,
             stop=None,
             temperature=0.7,
-            api_key=openAI_key
+            api_key=openAI_key,
         )
-        message = completions['choices'][0]['message']['content']
+        message = completions["choices"][0]["message"]["content"]
     except Exception as e:
-        message = f'API Error: {str(e)}'
-    return message 
+        message = f"API Error: {str(e)}"
+    return message
 
 
 def generate_answer(question, openAI_key):
     topn_chunks = recommender(question)
     prompt = ""
-    prompt += 'search results:\n\n'
+    prompt += "search results:\n\n"
     for c in topn_chunks:
-        prompt += c + '\n\n'
+        prompt += c + "\n\n"
 
     prompt += (
         "Instructions: Compose a comprehensive reply to the query using the search results given. "
@@ -164,8 +164,8 @@ def load_openai_key() -> str:
 
 @serving
 def ask_url(url: str, question: str):
-    download_pdf(url, 'corpus.pdf')
-    load_recommender('corpus.pdf')
+    download_pdf(url, "corpus.pdf")
+    load_recommender("corpus.pdf")
     openAI_key = load_openai_key()
     return generate_answer(question, openAI_key)
 
